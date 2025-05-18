@@ -1,69 +1,63 @@
-import argparse
 import json
 import matplotlib.pyplot as plt
-import sys
+import numpy as np
+import argparse
+import os
 
-def load_data_from_json(filename):
-    """Загрузка данных из JSON файла (формат 4)"""
-    try:
-        with open(filename, 'r') as file:
-            data = json.load(file)
-            x = [item['x'] for item in data['data']]
-            y = [item['y'] for item in data['data']]
-            
-            if not x or not y:
-                raise ValueError("Файл не содержит данных")
-                
-            return x, y
-    except FileNotFoundError:
-        print(f"Ошибка: Файл '{filename}' не найден")
-        sys.exit(1)
-    except json.JSONDecodeError:
-        print(f"Ошибка: Файл '{filename}' не является корректным JSON")
-        sys.exit(1)
-    except KeyError as e:
-        print(f"Ошибка: В файле отсутствует необходимый ключ - {e}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Произошла ошибка: {e}")
-        sys.exit(1)
+def load_data_from_json(file_path):
+    """Загрузка данных из JSON файла"""
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    
+    x_values = []
+    y_values = []
+    for item in data['data']:
+        x_values.append(item['x'])
+        y_values.append(item['y'])
+    
+    return x_values, y_values
 
-def plot_graph(x, y, xmin=None, xmax=None):
-    """Построение графика с возможностью ограничения по оси X"""
-    plt.figure(figsize=(12, 7))
+def plot_graph(x_values, y_values, width=10, height=5, xmin=None, xmax=None):
+    """Построение графика с указанными размерами окна и диапазоном X"""
+    plt.figure(figsize=(width, height))
+    plt.plot(x_values, y_values, label="f(x)", color="green")
+    plt.title("График функции")
+    plt.xlabel("x")
+    plt.ylabel("f(x)")
+    plt.grid(True)
     
     if xmin is not None and xmax is not None:
         plt.xlim(xmin, xmax)
     
-    plt.plot(x, y, 'b-', linewidth=1.5)
-    plt.xlabel('X', fontsize=12)
-    plt.ylabel('Y', fontsize=12)
-    plt.title('График функции: y = 100√(1-0.01x²) + 0.01|x+10|', fontsize=14)
-    plt.grid(True, linestyle='--', alpha=0.7)
+    current_xmin, current_xmax = plt.xlim()
+    plt.xticks(np.arange(current_xmin, current_xmax + 1, 1.0))
     
-    # Добавляем подписи к осям
-    plt.xticks(fontsize=10)
-    plt.yticks(fontsize=10)
-    
+    plt.legend()
     plt.show()
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Построение графика функции из JSON файла (формат 4)',
-        epilog='Пример использования: python task_02.py input.json --xmin=-10 --xmax=10'
-    )
-    parser.add_argument('filename', help='Имя JSON файла с данными')
-    parser.add_argument('--xmin', type=float, help='Минимальное значение по оси X')
-    parser.add_argument('--xmax', type=float, help='Максимальное значение по оси X')
-    
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(1)
-    
+    parser = argparse.ArgumentParser(description='Построение графика из JSON файла')
+    parser.add_argument('file', help='Путь к JSON файлу с данными')
+    parser.add_argument('-w', '--width', type=float, default=10, 
+                       help='Ширина окна графика (по умолчанию: 10)')
+    parser.add_argument('-ht', '--height', type=float, default=5,
+                       help='Высота окна графика (по умолчанию: 5)')
+    parser.add_argument('--xmin', type=float, 
+                       help='Минимальное значение оси X')
+    parser.add_argument('--xmax', type=float, 
+                       help='Максимальное значение оси X')
+
     args = parser.parse_args()
-    
-    x, y = load_data_from_json(args.filename)
-    plot_graph(x, y, args.xmin, args.xmax)
+
+    try:
+        if not os.path.exists(args.file):
+            raise FileNotFoundError(f"Файл {args.file} не найден")
+            
+        x, y = load_data_from_json(args.file)
+        plot_graph(x, y, args.width, args.height, args.xmin, args.xmax)
+        
+    except Exception as e:
+        print(f"Ошибка: {str(e)}")
 
 if __name__ == '__main__':
     main()
