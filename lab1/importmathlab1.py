@@ -1,3 +1,4 @@
+import os
 import math
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,15 +7,19 @@ import json
 def f(x):
     return 100 * math.sqrt(abs(1 - 0.01 * x**2) + 0.01 * abs(x + 10))
 
+os.makedirs('results', exist_ok=True)
+
 x_values = np.arange(-15, 5.01, 0.01)
 y_values = [f(x) for x in x_values]
 
 data = [{"x": x, "y": y} for x, y in zip(x_values, y_values)]
 result = {"data": data}
 
-with open('output.json', 'w') as json_file:
+output_path = os.path.join('results', 'output.json')
+with open(output_path, 'w') as json_file:
     json.dump(result, json_file, indent=4)
 
+print("Файл сохранен в:", output_path)
 print("x \t y = f(x)")
 for x, y in zip(x_values[:100], y_values[:100]):
     print(f"{x:.2f} \t {y:.5f}")  
