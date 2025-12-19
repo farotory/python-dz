@@ -37,11 +37,21 @@ class ABCSecondLeft(ABCSecondBase):
         self.oldE1[:] = E[0: 3]
 
 
-class ABCSecondRight(ABCSecondBase):
-    def updateField(self, E, H):
-        E[-1] = (self.k1 * (self.k2 * (E[-3] + self.oldE2[-1]) +
-                            self.k3 * (self.oldE1[-1] + self.oldE1[-3] - E[-2] - self.oldE2[-2]) -
-                            self.k4 * self.oldE1[-2]) - self.oldE2[-3])
+class ABCFirstRight(BoundaryBase):
+    '''
+    Поглощающее граничное условие первой степени (правая граница)
+    '''
 
-        self.oldE2[:] = self.oldE1[:]
-        self.oldE1[:] = E[-3:]
+    def __init__(self, eps, mu, Sc):
+        # Нормированная скорость
+        Sc1 = Sc / numpy.sqrt(mu * eps)
+        # Коэффициент отражения для 1-го порядка
+        self.q = (Sc1 - 1) / (Sc1 + 1)
+        # Значение поля в соседнем узле на предыдущем шаге
+        self.oldE = 0.0
+
+    def updateField(self, E, H):
+        # E[-1]^n = E[-2]^{n-1} + q * (E[-2]^n - E[-1]^{n-1})
+        E_new_edge = self.oldE + self.q * (E[-2] - E[-1])
+        self.oldE = E[-2]
+        E[-1] = E_new_edge

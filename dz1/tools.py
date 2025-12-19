@@ -120,7 +120,7 @@ class AnimateFieldDisplay:
         '''
         pylab.ioff()
 
-    def updateData(self, data: npt.NDArray[float], timeCount: int):
+    def updateData(self, data: npt.NDArray[float], timeCount: int): # type: ignore
         '''
         Обновить данные с распределением поля в пространстве
         '''
